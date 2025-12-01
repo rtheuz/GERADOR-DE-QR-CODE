@@ -1,7 +1,7 @@
 {
-  "name": "Task Scheduler - Agendador de Tarefas",
-  "short_name": "TaskScheduler",
-  "description": "Organize suas tarefas de forma inteligente com notificações e sincronização",
+  "name": "TaskScheduler Pro - Gerenciador Profissional de Tarefas",
+  "short_name": "TaskScheduler Pro",
+  "description": "Sistema profissional de gerenciamento de tarefas e eventos com interface moderna e intuitiva",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -10,10 +10,10 @@
   "background_color": "#ffffff",
   "lang": "pt-BR",
   "dir": "ltr",
-  "categories": ["productivity", "utilities", "lifestyle"],
+  "categories": ["productivity", "business", "utilities"],
   "icons": [
     {
-      "src": "/icons/icon-72x72. png",
+      "src": "/icons/icon-72x72.png",
       "sizes": "72x72",
       "type": "image/png",
       "purpose": "any"
@@ -61,22 +61,6 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "/screenshots/desktop-1.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "platform": "wide",
-      "label": "Vista principal do aplicativo"
-    },
-    {
-      "src": "/screenshots/mobile-1.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "platform": "narrow",
-      "label": "Vista mobile do aplicativo"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Nova Tarefa",
@@ -85,9 +69,8 @@
       "url": "/? action=new",
       "icons": [
         {
-          "src": "/icons/shortcut-new.png",
-          "sizes": "96x96",
-          "type": "image/png"
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96"
         }
       ]
     },
@@ -95,44 +78,27 @@
       "name": "Tarefas de Hoje",
       "short_name": "Hoje",
       "description": "Ver tarefas de hoje",
-      "url": "/?filter=today",
+      "url": "/?view=today",
       "icons": [
         {
-          "src": "/icons/shortcut-today.png",
-          "sizes": "96x96",
-          "type": "image/png"
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96"
+        }
+      ]
+    },
+    {
+      "name": "Esta Semana",
+      "short_name": "Semana",
+      "description": "Ver tarefas da semana",
+      "url": "/?view=week",
+      "icons": [
+        {
+          "src": "/icons/icon-96x96.png",
+          "sizes": "96x96"
         }
       ]
     }
   ],
   "related_applications": [],
-  "prefer_related_applications": false,
-  "share_target": {
-    "action": "/share",
-    "method": "POST",
-    "enctype": "multipart/form-data",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  },
-  "file_handlers": [
-    {
-      "action": "/open",
-      "accept": {
-        "application/json": [".json"]
-      }
-    }
-  ],
-  "protocol_handlers": [
-    {
-      "protocol": "web+task",
-      "url": "/?task=%s"
-    }
-  ],
-  "display_override": ["standalone", "fullscreen", "minimal-ui"],
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  }
+  "prefer_related_applications": false
 }

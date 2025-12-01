@@ -1,154 +1,241 @@
-# 📋 Task Scheduler - Agendador de Tarefas
+# 📋 TaskScheduler Pro
 
-![Version](https://img.shields.io/badge/version-2.0. 0-blue.svg)
+> Sistema profissional de gerenciamento de tarefas e eventos com interface moderna e intuitiva
+
+![Version](https://img.shields.io/badge/version-3.0.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![PWA](https://img.shields. io/badge/PWA-Ready-purple.svg)
 
-**Task Scheduler** é um aplicativo web progressivo (PWA) moderno e intuitivo para gerenciar suas tarefas diárias com notificações inteligentes, sincronização offline e design responsivo.
+## ✨ Características Principais
 
-## ✨ Funcionalidades
+### 🎯 Funcionalidades Core
 
-### 🎯 Core Features
-- ✅ **Criar, editar e excluir tarefas** com facilidade
-- 📅 **Organização por data** (Hoje, Amanhã, Esta Semana, Atrasadas)
-- 🏷️ **Categorias personalizadas** (Trabalho, Pessoal, Estudos, Saúde, Compras)
-- ⚡ **Prioridades** (Alta, Média, Baixa)
-- 🔍 **Busca e filtros avançados**
-- 📊 **Dashboard com estatísticas** em tempo real
+- **Gerenciamento Completo de Tarefas**
+  - Criar, editar, excluir e marcar como concluída
+  - Adicionar descrições detalhadas
+  - Definir data e horário específicos
+  - Configurar lembretes personalizados
 
-### 🔔 Notificações Inteligentes
-- 📲 **Notificações push** no navegador e mobile
-- ⏰ **Lembretes automáticos** (30 min, 15 min, 5 min antes)
-- ⚠️ **Alertas de tarefas atrasadas**
-- 📋 **Resumo diário** das tarefas pendentes
+- **Sistema de Prioridades**
+  - 🔴 Alta prioridade
+  - 🟡 Média prioridade
+  - 🟢 Baixa prioridade
 
-### 💡 Design & UX
-- 🎨 **Design moderno e minimalista**
-- 🌙 **Modo escuro/claro** automático
-- 📱 **100% Responsivo** (mobile-first)
-- ⚡ **Animações suaves** e feedback visual
-- ♿ **Acessível** (WCAG 2.1)
+- **Categorização Inteligente**
+  - 💼 Trabalho
+  - 👤 Pessoal
+  - 📚 Estudos
+  - ❤️ Saúde
+  - 🛒 Compras
+  - 📌 Outros
 
-### 🚀 PWA Features
-- 📲 **Instalável** como app nativo
-- 🔄 **Funciona offline** completamente
-- ⚡ **Carregamento instantâneo**
-- 💾 **Cache inteligente**
-- 🔄 **Sincronização em background**
+### 📊 Dashboard & Estatísticas
+
+- **Visão Geral em Tempo Real**
+  - Total de tarefas
+  - Tarefas concluídas
+  - Tarefas pendentes
+  - Tarefas atrasadas
+  - Taxa de conclusão com gráfico circular
+
+- **Múltiplas Visualizações**
+  - 📅 Hoje
+  - 📆 Esta Semana
+  - 🔜 Próximas
+  - 📋 Todas as Tarefas
+  - ✅ Concluídas
+
+### 🔔 Sistema de Notificações
+
+- **Lembretes Configuráveis**
+  - No horário da tarefa
+  - 5, 15, 30 minutos antes
+  - 1 hora antes
+  - 1 dia antes
+
+- **Notificações Inteligentes**
+  - Alertas de tarefas atrasadas
+  - Resumo diário
+  - Notificações push
+
+### 📅 Calendário Integrado
+
+- Visualização mensal interativa
+- Indicadores de dias com tarefas
+- Navegação rápida entre meses
+- Filtro por data
+
+### 🎨 Design & UX
+
+- **Interface Profissional**
+  - Design system completo
+  - Componentes reutilizáveis
+  - Animações suaves
+  - Feedback visual em todas as ações
+
+- **Tema Escuro/Claro**
+  - Alternância com um clique
+  - Preferência salva localmente
+  - Cores otimizadas para cada modo
+
+- **Responsivo & Mobile-First**
+  - Adaptável a qualquer tamanho de tela
+  - Touch-friendly em dispositivos móveis
+  - Layout otimizado para desktop, tablet e mobile
+
+### 🚀 PWA (Progressive Web App)
+
+- **Instalável**
+  - Funciona como app nativo
+  - Ícone na tela inicial
+  - Experiência standalone
+
+- **Offline-First**
+  - Funciona 100% offline
+  - Service Worker avançado
+  - Cache inteligente
+  - Sincronização automática
+
+### 🔍 Busca & Filtros
+
+- **Busca Global**
+  - Pesquisa em títulos e descrições
+  - Resultados em tempo real
+  - Destacar correspondências
+
+- **Filtros Avançados**
+  - Por prioridade
+  - Por categoria
+  - Por status
+  - Por data
+
+- **Ordenação**
+  - Por prioridade
+  - Por data
+  - Por título
+  - Por categoria
 
 ### 📤 Import/Export
-- 💾 **Backup automático** no localStorage
-- 📥 **Importar tarefas** de arquivo JSON
-- 📤 **Exportar tarefas** para backup
 
-## 🚀 Como Usar
+- **Backup & Restauração**
+  - Exportar tarefas em JSON
+  - Importar de backup
+  - Compatibilidade entre dispositivos
 
-### Instalação Local
+## 🚀 Instalação
 
-1. **Clone o repositório**
+### 1. Clone o Repositório
+
 ```bash
 git clone https://github.com/rtheuz/AGENDADOR-DE-TAREFAS.git
 cd AGENDADOR-DE-TAREFAS
 ```
 
-2. **Abra o arquivo index.html**
-   - Simplesmente abra `index.html` em um navegador moderno
-   - Ou use um servidor local:
+### 2. Servidor Local
 
+#### Opção 1: Python
 ```bash
-# Com Python
 python -m http.server 8000
+```
 
-# Com Node.js (http-server)
-npx http-server
+#### Opção 2: Node.js
+```bash
+npx http-server -p 8000
+```
 
-# Com PHP
+#### Opção 3: PHP
+```bash
 php -S localhost:8000
 ```
 
-3. **Acesse no navegador**
+### 3. Acesse no Navegador
+
 ```
 http://localhost:8000
 ```
 
-### Instalar como PWA
+## 📱 Instalar como PWA
 
-#### No Desktop (Chrome/Edge)
-1. Clique no ícone de instalação (➕) na barra de endereços
-2. Ou vá em **Menu → Instalar Task Scheduler**
+### Desktop (Chrome/Edge)
+1. Clique no ícone de instalação na barra de endereços
+2. Ou: Menu → "Instalar TaskScheduler Pro"
 
-#### No Android
-1. Abra no Chrome/Firefox
-2. Toque em **Menu (⋮) → Instalar aplicativo**
+### Android
+1. Abra no Chrome
+2. Menu (⋮) → "Instalar aplicativo"
 3. Confirme a instalação
 
-#### No iOS/Safari
-1. Toque no botão **Compartilhar** (📤)
-2. Role e toque em **Adicionar à Tela Inicial**
-3. Confirme
+### iOS/Safari
+1. Toque em "Compartilhar" (📤)
+2. "Adicionar à Tela Inicial"
+3.  Confirme
 
-## 📱 Funcionalidades Detalhadas
+## 🎯 Como Usar
 
 ### Criar Tarefa Rápida
-1.  Clique no botão **+** (FAB) no canto inferior direito
-2. Digite o título da tarefa
-3.  Selecione uma data rápida (Hoje, Amanhã, Próxima Semana)
-4. Clique em **Salvar**
+1. Clique no botão **+** (canto inferior direito)
+2. Digite o título
+3. Selecione uma data rápida (Hoje, Amanhã, Próx.  Semana)
+4. Clique em "Criar Tarefa"
 
 ### Criar Tarefa Completa
 1. Clique no botão **+**
-2. Preencha o título
-3. Clique em **Mais opções** para expandir
-4. Adicione:
-   - Descrição detalhada
-   - Horário específico
+2. Preencha título e descrição
+3. Clique em "Opções Avançadas"
+4. Configure:
    - Prioridade
    - Categoria
+   - Lembrete
 5. Salve a tarefa
 
-### Filtros e Buscas
-- **Abas**: Filtre por Hoje, Esta Semana ou Todas
-- **Busca**: Digite no campo de pesquisa
-- **Filtros**: Use os dropdowns para filtrar por:
-  - Status (Ativas/Concluídas)
-  - Prioridade (Alta/Média/Baixa)
-  - Categoria
-  - Data
+### Navegar por Visualizações
+- **Barra Lateral**: Clique nas opções do menu
+  - Hoje, Semana, Próximas, Todas, Concluídas
+  - Categorias específicas
 
-### Visualizações
-- **Lista**: Visualização compacta e organizada
-- **Cards**: Visualização em grade com mais destaque
+### Buscar Tarefas
+- Digite no campo de busca no topo
+- Resultados aparecem em tempo real
 
-### Notificações
-1.  Clique em **Menu (☰)** no mobile ou **🔔** no header
-2. Clique em **Ativar Notificações**
-3.  Permita no navegador
-4. Você receberá:
-   - Lembrete 30 min antes
-   - Lembrete 15 min antes
-   - Lembrete 5 min antes
-   - Alerta quando estiver atrasada
+### Filtrar & Ordenar
+- Use os dropdowns na toolbar
+- Filtro por prioridade
+- Ordenação personalizada
+
+### Ativar Notificações
+1. Clique no botão de menu (mobile) ou "Ações Rápidas"
+2. "Ativar Notificações"
+3. Permita no navegador
+
+## ⌨️ Atalhos de Teclado
+
+| Atalho | Ação |
+|--------|------|
+| `Ctrl/Cmd + N` | Nova tarefa |
+| `Ctrl/Cmd + F` | Focar busca |
+| `Esc` | Fechar modais |
 
 ## 🛠️ Tecnologias
 
 ### Frontend
 - **HTML5** - Estrutura semântica
-- **CSS3** - Design moderno com CSS Variables
-- **JavaScript ES6+** - Lógica da aplicação
-- **Service Worker** - Cache e offline
+- **CSS3** - Design system completo
+- **JavaScript ES6+** - Lógica avançada
+- **Service Worker** - PWA e offline
 
 ### APIs Utilizadas
-- **Web Notifications API** - Notificações do navegador
-- **Service Worker API** - PWA e offline
-- **LocalStorage API** - Persistência de dados
-- **Push API** - Notificações push
-- **Web App Manifest** - Instalação PWA
+- Web Notifications API
+- Service Worker API
+- Local Storage API
+- Web App Manifest
+- Cache API
 
-### Design Patterns
-- **Mobile-First** - Design responsivo
-- **Progressive Enhancement** - Funcionalidades incrementais
-- **Offline First** - Funciona sem internet
-- **ARIA** - Acessibilidade
+### Padrões de Design
+- Design System profissional
+- Mobile-First responsive
+- Progressive Enhancement
+- Offline-First architecture
+- Component-based structure
 
 ## 📂 Estrutura de Arquivos
 
@@ -157,139 +244,130 @@ AGENDADOR-DE-TAREFAS/
 │
 ├── index.html              # Página principal
 ├── manifest.json           # Configuração PWA
-├── service-worker.js       # Service Worker para offline
+├── service-worker.js       # Service Worker
 │
 ├── css/
-│   └── style.css          # Estilos principais
+│   └── style.css          # Design system completo
 │
 ├── js/
 │   ├── app.js             # Lógica principal
-│   ├── storage.js         # Gerenciamento de dados
-│   ├── notifications.js   # Sistema de notificações
-│   ├── push-notifications.js # Push notifications
-│   └── pwa-install.js     # Instalação PWA
+│   └── notifications.js   # Sistema de notificações
 │
 ├── icons/
 │   ├── icon-72x72.png
 │   ├── icon-96x96.png
 │   ├── icon-128x128. png
 │   ├── icon-144x144.png
-│   ├── icon-152x152.png
+│   ├── icon-152x152. png
 │   ├── icon-192x192.png
 │   ├── icon-384x384.png
 │   └── icon-512x512.png
 │
-└── README.md              # Este arquivo
+└── README.md              # Documentação
 ```
 
 ## 🎨 Personalização
 
-### Alterar Cores (CSS Variables)
-Edite as variáveis no arquivo `css/style.css`:
+### Cores do Tema
+Edite as variáveis CSS em `css/style.css`:
 
 ```css
 :root {
-    --primary-color: #6366f1;     /* Cor principal */
-    --success-color: #10b981;     /* Cor de sucesso */
-    --warning-color: #f59e0b;     /* Cor de aviso */
-    --danger-color: #ef4444;      /* Cor de perigo */
+    --primary-600: #4f46e5;
+    --success: #10b981;
+    --warning: #f59e0b;
+    --danger: #ef4444;
 }
 ```
 
 ### Adicionar Novas Categorias
-Edite no arquivo `js/app.js`:
+No arquivo `js/app.js`, procure por `categoryIcons`:
 
 ```javascript
 const categoryIcons = {
     work: '💼',
     personal: '👤',
-    study: '📚',
-    health: '❤️',
-    shopping: '🛒',
-    other: '📌',
     // Adicione aqui
-    fitness: '🏋️',
-    finance: '💰'
+    fitness: '🏋️'
 };
 ```
+
+## 🔒 Privacidade & Segurança
+
+- ✅ Todos os dados armazenados localmente
+- ✅ Nenhuma transmissão para servidores externos
+- ✅ Sem rastreamento ou analytics
+- ✅ Sem cookies de terceiros
+- ✅ 100% offline-first
+- ✅ Código open-source auditável
 
 ## 🐛 Troubleshooting
 
 ### Notificações não funcionam
-- Verifique se deu permissão no navegador
-- Confirme que o site está em HTTPS ou localhost
-- Teste em modo anônimo para descartar extensões
+- Verifique permissões do navegador
+- Confirme HTTPS ou localhost
+- Teste em modo normal (não anônimo)
 
 ### App não instala
-- Use um navegador compatível (Chrome, Edge, Safari, Firefox)
-- Verifique se está em HTTPS
-- Limpe o cache e tente novamente
+- Use navegador compatível
+- Verifique HTTPS
+- Limpe cache do navegador
 
 ### Dados não salvam
-- Verifique se o localStorage está habilitado
-- Confirme que não está em modo anônimo
-- Verifique o espaço de armazenamento
-
-### PWA não funciona offline
-- Verifique se o Service Worker está registrado
-- Abra DevTools → Application → Service Workers
-- Force uma atualização do Service Worker
-
-## 🔒 Privacidade
-
-- ✅ **Todos os dados são armazenados localmente** no seu dispositivo
-- ✅ **Nenhuma informação é enviada para servidores externos**
-- ✅ **Sem rastreamento ou analytics**
-- ✅ **Sem cookies de terceiros**
-- ✅ **100% offline-first**
+- Verifique LocalStorage habilitado
+- Não use modo anônimo
+- Verifique espaço de armazenamento
 
 ## 📈 Roadmap
 
-### Versão 2.1
-- [ ] Suporte a subtarefas
-- [ ] Temas personalizados
-- [ ] Widgets para Android
-- [ ] Estatísticas avançadas
+### Versão 3.1
+- [ ] Subtarefas e checklists
+- [ ] Tags personalizadas
+- [ ] Anexos de arquivos
+- [ ] Modo Pomodoro
 
-### Versão 2.2
+### Versão 3.2
 - [ ] Sincronização em nuvem (opcional)
 - [ ] Compartilhamento de tarefas
-- [ ] Integração com calendários
-- [ ] Suporte a anexos
+- [ ] Integração com Google Calendar
+- [ ] Widgets para Android
 
-### Versão 3.0
+### Versão 4.0
 - [ ] Colaboração em tempo real
-- [ ] Modo Pomodoro integrado
-- [ ] IA para sugestões de tarefas
-- [ ] Voz para criar tarefas
+- [ ] Assistente com IA
+- [ ] Comandos de voz
+- [ ] Integração com Zapier
 
 ## 🤝 Contribuindo
 
-Contribuições são bem-vindas! Para contribuir:
+Contribuições são bem-vindas! 
 
 1. Fork o projeto
-2. Crie uma branch (`git checkout -b feature/AmazingFeature`)
-3.  Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4.  Push para a branch (`git push origin feature/AmazingFeature`)
+2. Crie uma branch (`git checkout -b feature/NovaFuncionalidade`)
+3. Commit suas mudanças (`git commit -m 'Adiciona nova funcionalidade'`)
+4. Push para a branch (`git push origin feature/NovaFuncionalidade`)
 5. Abra um Pull Request
 
 ## 📝 Licença
 
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
+Este projeto está sob a licença MIT. 
 
 ## 👨‍💻 Autor
 
 **rtheuz**
 - GitHub: [@rtheuz](https://github.com/rtheuz)
+- Repositório: [AGENDADOR-DE-TAREFAS](https://github.com/rtheuz/AGENDADOR-DE-TAREFAS)
 
 ## 🙏 Agradecimentos
 
+- Design inspirado em ferramentas profissionais de produtividade
 - Ícones: Emojis nativos do sistema
-- Fontes: [Inter](https://fonts.google.com/specimen/Inter) do Google Fonts
-- Inspiração: Modern productivity apps
+- Comunidade open-source
 
 ---
 
 **⭐ Se você gostou deste projeto, considere dar uma estrela no GitHub! **
 
-Made with ❤️ and ☕ by rtheuz
+**Made with ❤️ and ☕ by rtheuz**
+
+**#productivity #taskmanagement #pwa #javascript #opensource**

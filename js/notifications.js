@@ -1,74 +1,83 @@
 /**
- * Notification Manager
- * Handles browser notifications and reminders
+ * Notification Manager Pro
+ * Advanced notification and reminder system
  */
 
 class NotificationManager {
     constructor() {
         this.permission = 'default';
         this.scheduledNotifications = new Map();
+        this.notificationQueue = [];
     }
-    
+
     init() {
         this.checkPermission();
-        this.loadScheduledNotifications();
         this.startNotificationChecker();
+        console.log('✓ Notification Manager initialized');
     }
-    
+
     checkPermission() {
         if (! ('Notification' in window)) {
-            console.warn('This browser does not support notifications');
+            console.warn('Notifications not supported');
             return false;
         }
         
         this.permission = Notification.permission;
         return this.permission === 'granted';
     }
-    
+
     async requestPermission() {
         if (! ('Notification' in window)) {
-            this.showAlert('Seu navegador não suporta notificações', 'error');
+            if (window.app) {
+                window.app.showToast('Notificações não suportadas neste navegador', 'error');
+            }
             return false;
         }
-        
+
         if (this.permission === 'granted') {
-            this.showAlert('Notificações já estão ativadas!  ✓', 'success');
+            if (window.app) {
+                window.app.showToast('Notificações já estão ativadas!  ✓', 'success');
+            }
+            this.showWelcomeNotification();
             return true;
         }
-        
+
         try {
             const permission = await Notification.requestPermission();
             this.permission = permission;
-            
+
             if (permission === 'granted') {
-                this.showAlert('Notificações ativadas com sucesso! 🔔', 'success');
+                if (window. app) {
+                    window. app.showToast('Notificações ativadas com sucesso! 🔔', 'success');
+                }
                 this.showWelcomeNotification();
                 return true;
             } else {
-                this.showAlert('Permissão de notificação negada', 'warning');
+                if (window.app) {
+                    window.app.showToast('Permissão de notificação negada', 'warning');
+                }
                 return false;
             }
         } catch (error) {
-            console.error('Error requesting notification permission:', error);
-            this. showAlert('Erro ao solicitar permissão', 'error');
+            console. error('Error requesting permission:', error);
             return false;
         }
     }
-    
+
     showWelcomeNotification() {
         this.showNotification(
-            'Notificações Ativadas! 🎉',
-            'Você receberá lembretes sobre suas tarefas.',
-            { tag: 'welcome' }
+            'TaskScheduler Pro',
+            'Notificações ativadas!  Você receberá lembretes sobre suas tarefas.',
+            { tag: 'welcome', icon: '/icons/icon-192x192.png' }
         );
     }
-    
+
     showNotification(title, body, options = {}) {
         if (!this.checkPermission()) {
             console.log('Notification permission not granted');
             return;
         }
-        
+
         const defaultOptions = {
             body: body,
             icon: '/icons/icon-192x192.png',
@@ -78,142 +87,123 @@ class NotificationManager {
             requireInteraction: false,
             ...options
         };
-        
+
         try {
             const notification = new Notification(title, defaultOptions);
-            
+
             notification.onclick = () => {
                 window.focus();
                 notification.close();
                 
-                // If task ID is provided, open it
-                if (options.data?. taskId) {
-                    this.openTask(options.data.taskId);
+                if (options.data?. taskId && window.app) {
+                    window.app.openTaskModal(options.data.taskId);
                 }
             };
-            
-            // Auto close after 5 seconds
-            setTimeout(() => notification.close(), 5000);
-            
+
+            setTimeout(() => notification.close(), 6000);
+
             return notification;
         } catch (error) {
             console.error('Error showing notification:', error);
         }
     }
-    
+
     scheduleNotification(task) {
-        if (!task.date) return;
-        
+        if (!task.date || task.reminder === 'none') return;
+
         const taskDateTime = this.getTaskDateTime(task);
         const now = new Date();
+        const reminderMinutes = parseInt(task.reminder) || 30;
         
-        // Schedule notification 30 minutes before
-        const notificationTime = new Date(taskDateTime. getTime() - 30 * 60 * 1000);
-        
+        const notificationTime = new Date(taskDateTime. getTime() - reminderMinutes * 60 * 1000);
+
         if (notificationTime > now) {
-            const timeUntilNotification = notificationTime. getTime() - now.getTime();
-            
+            const timeUntil = notificationTime. getTime() - now.getTime();
+
             const timeoutId = setTimeout(() => {
                 this.showNotification(
                     '⏰ Lembrete de Tarefa',
-                    `${task.title} está programada para daqui a 30 minutos!`,
+                    `${task.title} em ${reminderMinutes} minutos!`,
                     {
-                        tag: `task-reminder-${task.id}`,
-                        data: { taskId: task.id }
-                    }
-                );
-            }, timeUntilNotification);
-            
-            this.scheduledNotifications.set(task.id, {
-                timeoutId,
-                notificationTime: notificationTime. toISOString(),
-                taskTitle: task.title
-            });
-            
-            this.saveScheduledNotifications();
-        }
-        
-        // Schedule notification at exact time
-        if (taskDateTime > now) {
-            const timeUntilTask = taskDateTime.getTime() - now.getTime();
-            
-            setTimeout(() => {
-                this.showNotification(
-                    '🔔 Hora da Tarefa! ',
-                    `${task. title}`,
-                    {
-                        tag: `task-due-${task.id}`,
+                        tag: `reminder-${task.id}`,
                         data: { taskId: task.id },
                         requireInteraction: true
                     }
                 );
-            }, timeUntilTask);
+            }, timeUntil);
+
+            this.scheduledNotifications.set(task. id, {
+                timeoutId,
+                notificationTime: notificationTime. toISOString(),
+                taskTitle: task.title
+            });
+
+            console.log(`✓ Notification scheduled for ${task.title} at ${notificationTime.toLocaleString()}`);
         }
     }
-    
+
     cancelNotification(taskId) {
         const scheduled = this.scheduledNotifications. get(taskId);
         if (scheduled) {
             clearTimeout(scheduled.timeoutId);
             this.scheduledNotifications. delete(taskId);
-            this.saveScheduledNotifications();
+            console.log(`✓ Notification cancelled for task ${taskId}`);
         }
     }
-    
+
     getTaskDateTime(task) {
         const dateTime = new Date(task.date);
-        
+
         if (task.time) {
             const [hours, minutes] = task.time.split(':');
             dateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
         } else {
-            dateTime. setHours(9, 0, 0, 0); // Default to 9 AM
+            dateTime. setHours(9, 0, 0, 0);
         }
-        
+
         return dateTime;
     }
-    
+
     startNotificationChecker() {
-        // Check every 5 minutes for tasks that need notifications
+        // Check every 5 minutes
         setInterval(() => {
             this.checkPendingNotifications();
         }, 5 * 60 * 1000);
-        
+
         // Initial check
-        this.checkPendingNotifications();
+        setTimeout(() => this.checkPendingNotifications(), 5000);
     }
-    
+
     checkPendingNotifications() {
-        if (! this.checkPermission()) return;
-        
-        const tasks = this.getTasks();
+        if (! this.checkPermission() || !window.app) return;
+
+        const tasks = window.app.tasks;
         const now = new Date();
-        
-        tasks. forEach(task => {
-            if (task.completed) return;
-            
+
+        tasks.forEach(task => {
+            if (task.completed || ! task.time) return;
+
             const taskDateTime = this.getTaskDateTime(task);
-            const timeDiff = taskDateTime.getTime() - now.getTime();
-            
-            // Notify 1 hour before
-            if (timeDiff > 0 && timeDiff <= 60 * 60 * 1000) {
-                const minutesUntil = Math.round(timeDiff / 60 / 1000);
-                if (minutesUntil === 60 || minutesUntil === 30 || minutesUntil === 15 || minutesUntil === 5) {
-                    this. showNotification(
-                        '⏰ Lembrete',
-                        `${task.title} em ${minutesUntil} minutos`,
-                        {
-                            tag: `reminder-${task.id}-${minutesUntil}`,
-                            data: { taskId: task.id }
-                        }
-                    );
-                }
+            const timeDiff = taskDateTime.getTime() - now. getTime();
+            const minutesUntil = Math.floor(timeDiff / 60000);
+
+            // Notify at specific intervals
+            if ([60, 30, 15, 5].includes(minutesUntil)) {
+                this.showNotification(
+                    '⏰ Lembrete',
+                    `${task.title} em ${minutesUntil} minutos`,
+                    {
+                        tag: `reminder-${task.id}-${minutesUntil}`,
+                        data: { taskId: task.id },
+                        requireInteraction: minutesUntil <= 15
+                    }
+                );
             }
-            
-            // Notify if overdue
-            if (timeDiff < 0 && timeDiff > -60 * 60 * 1000) {
-                const minutesOverdue = Math.abs(Math.round(timeDiff / 60 / 1000));
-                if (minutesOverdue % 15 === 0) { // Every 15 minutes
+
+            // Overdue notification
+            if (timeDiff < 0 && timeDiff > -3600000) { // Within 1 hour overdue
+                const minutesOverdue = Math.abs(minutesUntil);
+                if (minutesOverdue % 15 === 0) {
                     this.showNotification(
                         '⚠️ Tarefa Atrasada',
                         `${task.title} está ${minutesOverdue} minutos atrasada`,
@@ -227,88 +217,37 @@ class NotificationManager {
             }
         });
     }
-    
-    getTasks() {
-        try {
-            const tasksJson = localStorage.getItem('tasks');
-            return tasksJson ? JSON.parse(tasksJson) : [];
-        } catch (error) {
-            console.error('Error loading tasks:', error);
-            return [];
-        }
-    }
-    
-    openTask(taskId) {
-        // Trigger opening task modal in main app
-        if (window.app) {
-            window.app. openTaskModal(taskId);
-        }
-    }
-    
-    saveScheduledNotifications() {
-        const data = Array.from(this.scheduledNotifications.entries()).map(([id, info]) => ({
-            id,
-            notificationTime: info.notificationTime,
-            taskTitle: info. taskTitle
-        }));
-        localStorage.setItem('scheduledNotifications', JSON.stringify(data));
-    }
-    
-    loadScheduledNotifications() {
-        try {
-            const saved = localStorage.getItem('scheduledNotifications');
-            if (saved) {
-                const data = JSON.parse(saved);
-                // Clear old notifications and reschedule active ones
-                this.scheduledNotifications.clear();
-                // Reschedule would happen when tasks are loaded in main app
-            }
-        } catch (error) {
-            console. error('Error loading scheduled notifications:', error);
-        }
-    }
-    
-    showAlert(message, type = 'info') {
-        if (window.app) {
-            window.app.showToast(message, type);
-        } else {
-            console.log(`[${type. toUpperCase()}] ${message}`);
-        }
-    }
-    
-    // Daily summary notification
+
     scheduleDailySummary() {
         const now = new Date();
         const tomorrow = new Date(now);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(8, 0, 0, 0); // 8 AM next day
-        
-        const timeUntilSummary = tomorrow.getTime() - now.getTime();
-        
+        tomorrow.setHours(8, 0, 0, 0);
+
+        const timeUntil = tomorrow.getTime() - now.getTime();
+
         setTimeout(() => {
             this.sendDailySummary();
-            // Reschedule for next day
-            this.scheduleDailySummary();
-        }, timeUntilSummary);
+            this.scheduleDailySummary(); // Reschedule
+        }, timeUntil);
     }
-    
+
     sendDailySummary() {
-        const tasks = this.getTasks();
+        if (!this.checkPermission() || !window.app) return;
+
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
-        const todayTasks = tasks.filter(task => {
+
+        const todayTasks = window.app. tasks.filter(task => {
             const taskDate = new Date(task.date);
             taskDate.setHours(0, 0, 0, 0);
-            return taskDate. getTime() === today.getTime();
+            return taskDate.getTime() === today.getTime() && !task.completed;
         });
-        
-        const pendingToday = todayTasks.filter(t => ! t.completed). length;
-        
-        if (pendingToday > 0) {
-            this. showNotification(
+
+        if (todayTasks.length > 0) {
+            this.showNotification(
                 '📋 Resumo do Dia',
-                `Você tem ${pendingToday} tarefa(s) pendente(s) para hoje!`,
+                `Você tem ${todayTasks.length} tarefa(s) para hoje! `,
                 { tag: 'daily-summary' }
             );
         }
