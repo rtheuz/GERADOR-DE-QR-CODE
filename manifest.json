@@ -31,7 +31,7 @@
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-144x144. png",
+      "src": "/icons/icon-144x144.png",
       "sizes": "144x144",
       "type": "image/png",
       "purpose": "any"
@@ -79,18 +79,6 @@
       "short_name": "Hoje",
       "description": "Ver tarefas de hoje",
       "url": "/?view=today",
-      "icons": [
-        {
-          "src": "/icons/icon-96x96.png",
-          "sizes": "96x96"
-        }
-      ]
-    },
-    {
-      "name": "Esta Semana",
-      "short_name": "Semana",
-      "description": "Ver tarefas da semana",
-      "url": "/?view=week",
       "icons": [
         {
           "src": "/icons/icon-96x96.png",
