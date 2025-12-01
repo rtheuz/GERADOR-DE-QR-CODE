@@ -1,409 +1,165 @@
 /**
- * Push Notifications Manager for Task Scheduler PWA
- * Handles push notifications, permission requests, and scheduled notifications
+ * Push Notifications for PWA
+ * Service Worker integration for push notifications
  */
 
 class PushNotificationManager {
     constructor() {
-        this.isSupported = 'Notification' in window && 'serviceWorker' in navigator;
-        this.permission = this.isSupported ? Notification.permission : 'denied';
-        this.scheduledNotifications = new Map();
-        this.settings = this.loadSettings();
+        this.registration = null;
+        this.subscription = null;
     }
-
-    /**
-     * Load notification settings from localStorage
-     */
-    loadSettings() {
-        try {
-            const saved = localStorage.getItem('taskScheduler_notificationSettings');
-            return saved ? JSON.parse(saved) : this.getDefaultSettings();
-        } catch {
-            return this.getDefaultSettings();
-        }
-    }
-
-    /**
-     * Get default notification settings
-     */
-    getDefaultSettings() {
-        return {
-            enabled: true,
-            sound: true,
-            vibration: true,
-            morningReminder: true,
-            morningReminderTime: '08:00',
-            deadlineReminder: true,
-            deadlineReminderMinutes: 30,
-            overdueNotification: true
-        };
-    }
-
-    /**
-     * Save notification settings
-     */
-    saveSettings(settings) {
-        this.settings = { ...this.settings, ...settings };
-        localStorage.setItem('taskScheduler_notificationSettings', JSON.stringify(this.settings));
-    }
-
-    /**
-     * Initialize push notifications
-     */
+    
     async init() {
-        if (!this.isSupported) {
-            console.log('[PushNotifications] Not supported in this browser');
+        if (! ('serviceWorker' in navigator) || !('PushManager' in window)) {
+            console.warn('Push notifications not supported');
             return false;
         }
-
-        // Check if already permitted
-        if (this.permission === 'granted') {
-            this.setupScheduledNotifications();
+        
+        try {
+            // Wait for service worker to be ready
+            this.registration = await navigator.serviceWorker.ready;
+            await this.checkSubscription();
+            return true;
+        } catch (error) {
+            console.error('Error initializing push notifications:', error);
+            return false;
+        }
+    }
+    
+    async checkSubscription() {
+        try {
+            this.subscription = await this.registration. pushManager.getSubscription();
+            return this.subscription !== null;
+        } catch (error) {
+            console.error('Error checking subscription:', error);
+            return false;
+        }
+    }
+    
+    async subscribe() {
+        if (!this. registration) {
+            console.error('Service worker not registered');
+            return false;
+        }
+        
+        try {
+            const permission = await Notification.requestPermission();
+            
+            if (permission !== 'granted') {
+                console.log('Notification permission denied');
+                return false;
+            }
+            
+            // Create subscription
+            const vapidPublicKey = this.getVapidPublicKey();
+            
+            this.subscription = await this. registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: this.urlBase64ToUint8Array(vapidPublicKey)
+            });
+            
+            // Save subscription to server (if you have a backend)
+            await this.saveSubscription(this.subscription);
+            
+            console.log('Push notification subscription successful');
+            return true;
+        } catch (error) {
+            console.error('Error subscribing to push notifications:', error);
+            return false;
+        }
+    }
+    
+    async unsubscribe() {
+        if (! this.subscription) {
             return true;
         }
-
-        return false;
-    }
-
-    /**
-     * Request notification permission
-     */
-    async requestPermission() {
-        if (!this.isSupported) {
-            return { granted: false, reason: 'not_supported' };
-        }
-
-        if (this.permission === 'denied') {
-            return { granted: false, reason: 'denied' };
-        }
-
-        if (this.permission === 'granted') {
-            return { granted: true };
-        }
-
+        
         try {
-            const result = await Notification.requestPermission();
-            this.permission = result;
-
-            if (result === 'granted') {
-                this.setupScheduledNotifications();
-                this.showWelcomeNotification();
-                return { granted: true };
-            }
-
-            return { granted: false, reason: result };
+            await this.subscription.unsubscribe();
+            this.subscription = null;
+            console.log('Unsubscribed from push notifications');
+            return true;
         } catch (error) {
-            console.error('[PushNotifications] Permission request failed:', error);
-            return { granted: false, reason: 'error' };
+            console.error('Error unsubscribing:', error);
+            return false;
         }
     }
-
-    /**
-     * Show welcome notification
-     */
-    showWelcomeNotification() {
-        this.show('🎉 Notificações Ativadas!', {
-            body: 'Você receberá lembretes das suas tarefas.',
-            tag: 'welcome'
-        });
+    
+    getVapidPublicKey() {
+        // Replace with your actual VAPID public key
+        // Generate at: https://vapidkeys.com/
+        return 'BEl62iUYgUivxIkv69yViEuiBIa-Ib37J8xQmrLEmGO5BPqL8BqhHNPkRfRbuUBcMxdGU6M-FQjCi6Z_rvTnXGg';
     }
-
-    /**
-     * Show a notification
-     */
-    show(title, options = {}) {
-        if (!this.isSupported || this.permission !== 'granted' || !this.settings.enabled) {
-            return null;
+    
+    urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding)
+            .replace(/\-/g, '+')
+            .replace(/_/g, '/');
+        
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
         }
-
-        const defaultOptions = {
-            icon: '/icons/icon-192x192.png',
-            badge: '/icons/icon-72x72.png',
-            tag: options.tag || `notification-${Date.now()}`,
-            requireInteraction: options.requireInteraction || false,
-            silent: !this.settings.sound,
-            vibrate: this.settings.vibration ? [100, 50, 100] : undefined,
-            data: options.data || {}
-        };
-
+        return outputArray;
+    }
+    
+    async saveSubscription(subscription) {
+        // If you have a backend, send subscription there
+        // For now, just save locally
+        localStorage.setItem('pushSubscription', JSON.stringify(subscription));
+        
+        // Example: send to your server
+        /*
         try {
-            const notification = new Notification(title, { ...defaultOptions, ...options });
-
-            notification.onclick = () => {
-                window.focus();
-                notification.close();
-                if (options.onClick) {
-                    options.onClick();
-                }
-            };
-
-            // Auto close after 8 seconds
-            if (!options.requireInteraction) {
-                setTimeout(() => notification.close(), 8000);
-            }
-
-            // Haptic feedback if supported
-            if (this.settings.vibration && 'vibrate' in navigator) {
-                navigator.vibrate([100, 50, 100]);
-            }
-
-            return notification;
-        } catch (error) {
-            console.error('[PushNotifications] Failed to show notification:', error);
-            return null;
-        }
-    }
-
-    /**
-     * Schedule notification for a task
-     */
-    scheduleTaskNotification(task) {
-        if (!task.date || task.completed) return;
-
-        const taskDateTime = this.getTaskDateTime(task);
-        if (!taskDateTime || taskDateTime <= new Date()) return;
-
-        // Clear any existing scheduled notifications for this task
-        this.clearTaskNotifications(task.id);
-
-        // Schedule reminder before deadline
-        if (this.settings.deadlineReminder) {
-            const reminderTime = new Date(taskDateTime.getTime() - this.settings.deadlineReminderMinutes * 60000);
-            
-            if (reminderTime > new Date()) {
-                const timeoutId = setTimeout(() => {
-                    this.notifyUpcomingTask(task, this.settings.deadlineReminderMinutes);
-                }, reminderTime.getTime() - Date.now());
-                
-                this.scheduledNotifications.set(`${task.id}_reminder`, timeoutId);
-            }
-        }
-
-        // Schedule deadline notification
-        const deadlineTimeoutId = setTimeout(() => {
-            this.notifyTaskDeadline(task);
-        }, taskDateTime.getTime() - Date.now());
-        
-        this.scheduledNotifications.set(`${task.id}_deadline`, deadlineTimeoutId);
-    }
-
-    /**
-     * Get task datetime
-     */
-    getTaskDateTime(task) {
-        if (!task.date) return null;
-        const timeStr = task.time || '23:59';
-        try {
-            return new Date(`${task.date}T${timeStr}`);
-        } catch {
-            return null;
-        }
-    }
-
-    /**
-     * Notify about upcoming task
-     */
-    notifyUpcomingTask(task, minutesBefore) {
-        const priorityEmoji = { high: '🔴', medium: '🟡', low: '🟢' };
-        const categoryEmoji = {
-            work: '💼', personal: '👤', study: '📚',
-            health: '❤️', shopping: '🛒', other: '📌'
-        };
-
-        this.show(`⏰ Tarefa em ${minutesBefore} minutos`, {
-            body: `${priorityEmoji[task.priority] || ''} ${task.title}`,
-            tag: `upcoming_${task.id}`,
-            requireInteraction: true,
-            data: { taskId: task.id, type: 'upcoming' }
-        });
-    }
-
-    /**
-     * Notify about task deadline
-     */
-    notifyTaskDeadline(task) {
-        this.show('⚠️ Hora da Tarefa!', {
-            body: task.title,
-            tag: `deadline_${task.id}`,
-            requireInteraction: true,
-            data: { taskId: task.id, type: 'deadline' }
-        });
-    }
-
-    /**
-     * Notify about overdue task
-     */
-    notifyOverdueTask(task) {
-        if (!this.settings.overdueNotification) return;
-
-        this.show('❌ Tarefa Atrasada!', {
-            body: task.title,
-            tag: `overdue_${task.id}`,
-            data: { taskId: task.id, type: 'overdue' }
-        });
-    }
-
-    /**
-     * Clear scheduled notifications for a task
-     */
-    clearTaskNotifications(taskId) {
-        const keys = [`${taskId}_reminder`, `${taskId}_deadline`];
-        keys.forEach(key => {
-            const timeoutId = this.scheduledNotifications.get(key);
-            if (timeoutId) {
-                clearTimeout(timeoutId);
-                this.scheduledNotifications.delete(key);
-            }
-        });
-    }
-
-    /**
-     * Setup scheduled notifications (morning reminder, etc.)
-     */
-    setupScheduledNotifications() {
-        // Schedule morning reminder
-        if (this.settings.morningReminder) {
-            this.scheduleMorningReminder();
-        }
-
-        // Check for overdue tasks every hour
-        setInterval(() => {
-            this.checkOverdueTasks();
-        }, 3600000); // 1 hour
-    }
-
-    /**
-     * Schedule morning reminder
-     */
-    scheduleMorningReminder() {
-        const now = new Date();
-        const [hours, minutes] = this.settings.morningReminderTime.split(':').map(Number);
-        
-        let reminderTime = new Date();
-        reminderTime.setHours(hours, minutes, 0, 0);
-        
-        // If time has passed today, schedule for tomorrow
-        if (reminderTime <= now) {
-            reminderTime.setDate(reminderTime.getDate() + 1);
-        }
-
-        const timeout = reminderTime.getTime() - now.getTime();
-        
-        setTimeout(() => {
-            this.showMorningSummary();
-            // Reschedule for next day
-            this.scheduleMorningReminder();
-        }, timeout);
-    }
-
-    /**
-     * Show morning summary notification
-     */
-    showMorningSummary() {
-        const tasks = this.getTodaysTasks();
-        if (tasks.length === 0) return;
-
-        const pendingCount = tasks.filter(t => !t.completed).length;
-        
-        if (pendingCount > 0) {
-            this.show('☀️ Bom Dia!', {
-                body: `Você tem ${pendingCount} tarefa${pendingCount > 1 ? 's' : ''} para hoje.`,
-                tag: 'morning_summary',
-                requireInteraction: true
-            });
-        }
-    }
-
-    /**
-     * Get today's tasks from storage
-     */
-    getTodaysTasks() {
-        try {
-            const tasksJson = localStorage.getItem('taskScheduler_tasks');
-            if (!tasksJson) return [];
-
-            const tasks = JSON.parse(tasksJson);
-            const today = new Date().toISOString().split('T')[0];
-            
-            return tasks.filter(task => task.date === today);
-        } catch {
-            return [];
-        }
-    }
-
-    /**
-     * Check for overdue tasks and notify
-     */
-    checkOverdueTasks() {
-        if (!this.settings.overdueNotification) return;
-
-        try {
-            const tasksJson = localStorage.getItem('taskScheduler_tasks');
-            if (!tasksJson) return;
-
-            const tasks = JSON.parse(tasksJson);
-            const now = new Date();
-
-            tasks.forEach(task => {
-                if (task.completed || !task.date) return;
-
-                const taskDateTime = this.getTaskDateTime(task);
-                if (!taskDateTime) return;
-
-                // If overdue and not already notified
-                if (taskDateTime < now) {
-                    const notifiedKey = `overdue_notified_${task.id}`;
-                    const lastNotified = localStorage.getItem(notifiedKey);
-                    const lastNotifiedDate = lastNotified ? new Date(lastNotified) : null;
-                    
-                    // Only notify once per day
-                    if (!lastNotifiedDate || (now - lastNotifiedDate) > 86400000) {
-                        this.notifyOverdueTask(task);
-                        localStorage.setItem(notifiedKey, now.toISOString());
-                    }
-                }
+            await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(subscription)
             });
         } catch (error) {
-            console.error('[PushNotifications] Error checking overdue tasks:', error);
+            console.error('Error saving subscription to server:', error);
         }
+        */
     }
-
-    /**
-     * Update app badge with pending count
-     */
-    async updateBadge(count) {
-        if ('setAppBadge' in navigator) {
-            try {
-                if (count > 0) {
-                    await navigator.setAppBadge(count);
-                } else {
-                    await navigator.clearAppBadge();
+    
+    async sendTestNotification() {
+        if (! this.subscription) {
+            console.log('No active subscription');
+            return;
+        }
+        
+        // This would normally come from your server
+        // For testing, we'll trigger a local notification
+        if (this.registration) {
+            this.registration.showNotification('Teste de Notificação', {
+                body: 'As notificações estão funcionando perfeitamente!  🎉',
+                icon: '/icons/icon-192x192.png',
+                badge: '/icons/icon-96x96.png',
+                vibrate: [200, 100, 200],
+                tag: 'test-notification',
+                data: {
+                    dateOfArrival: Date.now(),
+                    primaryKey: 1
                 }
-            } catch (error) {
-                console.error('[PushNotifications] Badge update failed:', error);
-            }
+            });
         }
-    }
-
-    /**
-     * Trigger haptic feedback
-     */
-    vibrate(pattern = [50]) {
-        if (this.settings.vibration && 'vibrate' in navigator) {
-            navigator.vibrate(pattern);
-        }
-    }
-
-    /**
-     * Check if notifications are enabled and permitted
-     */
-    isEnabled() {
-        return this.isSupported && 
-               this.permission === 'granted' && 
-               this.settings.enabled;
     }
 }
 
-// Initialize and export
-window.PushNotificationManager = PushNotificationManager;
-window.pushNotifications = new PushNotificationManager();
+// Initialize
+const pushManager = new PushNotificationManager();
+
+// Auto-initialize when service worker is ready
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.ready.then(() => {
+        pushManager.init();
+    });
+}
+
+// Expose globally
+window.PushNotificationManager = pushManager;

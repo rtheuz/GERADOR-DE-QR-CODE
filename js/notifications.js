@@ -1,259 +1,319 @@
 /**
- * Notifications Manager - Browser notifications for Task Scheduler
- * Handles notification permissions and scheduling
+ * Notification Manager
+ * Handles browser notifications and reminders
  */
 
 class NotificationManager {
     constructor() {
-        this.notificationSupported = 'Notification' in window;
-        this.notifiedTasks = new Set(); // Track which tasks have been notified
-        this.checkInterval = null;
+        this.permission = 'default';
+        this.scheduledNotifications = new Map();
     }
-
-    /**
-     * Initialize notifications system
-     */
-    async init() {
-        if (!this.notificationSupported) {
-            console.log('Browser notifications not supported');
+    
+    init() {
+        this.checkPermission();
+        this.loadScheduledNotifications();
+        this.startNotificationChecker();
+    }
+    
+    checkPermission() {
+        if (! ('Notification' in window)) {
+            console.warn('This browser does not support notifications');
             return false;
         }
-
-        // Request permission if not already granted
-        if (Notification.permission === 'default') {
-            const permission = await Notification.requestPermission();
-            return permission === 'granted';
-        }
-
-        return Notification.permission === 'granted';
+        
+        this.permission = Notification.permission;
+        return this.permission === 'granted';
     }
-
-    /**
-     * Check if notifications are enabled
-     * @returns {boolean}
-     */
-    isEnabled() {
-        return this.notificationSupported && Notification.permission === 'granted';
-    }
-
-    /**
-     * Request notification permission
-     * @returns {Promise<boolean>}
-     */
+    
     async requestPermission() {
-        if (!this.notificationSupported) {
+        if (! ('Notification' in window)) {
+            this.showAlert('Seu navegador não suporta notificações', 'error');
             return false;
         }
-
+        
+        if (this.permission === 'granted') {
+            this.showAlert('Notificações já estão ativadas!  ✓', 'success');
+            return true;
+        }
+        
         try {
             const permission = await Notification.requestPermission();
-            return permission === 'granted';
+            this.permission = permission;
+            
+            if (permission === 'granted') {
+                this.showAlert('Notificações ativadas com sucesso! 🔔', 'success');
+                this.showWelcomeNotification();
+                return true;
+            } else {
+                this.showAlert('Permissão de notificação negada', 'warning');
+                return false;
+            }
         } catch (error) {
             console.error('Error requesting notification permission:', error);
+            this. showAlert('Erro ao solicitar permissão', 'error');
             return false;
         }
     }
-
-    /**
-     * Show a browser notification
-     * @param {string} title - Notification title
-     * @param {Object} options - Notification options
-     */
-    show(title, options = {}) {
-        if (!this.isEnabled()) {
-            return null;
+    
+    showWelcomeNotification() {
+        this.showNotification(
+            'Notificações Ativadas! 🎉',
+            'Você receberá lembretes sobre suas tarefas.',
+            { tag: 'welcome' }
+        );
+    }
+    
+    showNotification(title, body, options = {}) {
+        if (!this.checkPermission()) {
+            console.log('Notification permission not granted');
+            return;
         }
-
+        
         const defaultOptions = {
-            icon: '📋',
-            badge: '📋',
-            tag: options.tag || 'task-scheduler',
+            body: body,
+            icon: '/icons/icon-192x192.png',
+            badge: '/icons/icon-96x96.png',
+            vibrate: [200, 100, 200],
+            timestamp: Date.now(),
             requireInteraction: false,
-            silent: false
+            ...options
         };
-
+        
         try {
-            const notification = new Notification(title, { ...defaultOptions, ...options });
+            const notification = new Notification(title, defaultOptions);
             
             notification.onclick = () => {
                 window.focus();
                 notification.close();
-                if (options.onClick) {
-                    options.onClick();
+                
+                // If task ID is provided, open it
+                if (options.data?. taskId) {
+                    this.openTask(options.data.taskId);
                 }
             };
-
+            
             // Auto close after 5 seconds
             setTimeout(() => notification.close(), 5000);
             
             return notification;
         } catch (error) {
             console.error('Error showing notification:', error);
-            return null;
         }
     }
-
-    /**
-     * Start checking for upcoming task deadlines
-     * @param {Function} getTasksFn - Function to get tasks
-     */
-    startDeadlineChecker(getTasksFn) {
-        if (this.checkInterval) {
-            clearInterval(this.checkInterval);
-        }
-
-        // Check every minute
-        this.checkInterval = setInterval(() => {
-            this.checkDeadlines(getTasksFn());
-        }, 60000);
-
-        // Also check immediately
-        this.checkDeadlines(getTasksFn());
-    }
-
-    /**
-     * Stop the deadline checker
-     */
-    stopDeadlineChecker() {
-        if (this.checkInterval) {
-            clearInterval(this.checkInterval);
-            this.checkInterval = null;
-        }
-    }
-
-    /**
-     * Check task deadlines and send notifications
-     * @param {Array} tasks - Array of tasks to check
-     */
-    checkDeadlines(tasks) {
-        if (!this.isEnabled()) return;
-
+    
+    scheduleNotification(task) {
+        if (!task.date) return;
+        
+        const taskDateTime = this.getTaskDateTime(task);
         const now = new Date();
         
-        tasks.forEach(task => {
-            if (task.completed || !task.date) return;
-
-            const taskDateTime = this.getTaskDateTime(task);
-            if (!taskDateTime) return;
-
-            const diffMs = taskDateTime.getTime() - now.getTime();
-            const diffMinutes = Math.floor(diffMs / 60000);
-
-            // Generate unique notification keys
-            const key60 = `${task.id}_60`;
-            const key30 = `${task.id}_30`;
-            const key0 = `${task.id}_0`;
-
-            // Notify 1 hour before (55-65 minutes window)
-            if (diffMinutes >= 55 && diffMinutes <= 65 && !this.notifiedTasks.has(key60)) {
-                this.notifyUpcoming(task, '1 hora');
-                this.notifiedTasks.add(key60);
-            }
-
-            // Notify 30 minutes before (25-35 minutes window)
-            if (diffMinutes >= 25 && diffMinutes <= 35 && !this.notifiedTasks.has(key30)) {
-                this.notifyUpcoming(task, '30 minutos');
-                this.notifiedTasks.add(key30);
-            }
-
-            // Notify at deadline (-5 to 5 minutes window)
-            if (diffMinutes >= -5 && diffMinutes <= 5 && !this.notifiedTasks.has(key0)) {
-                this.notifyDeadline(task);
-                this.notifiedTasks.add(key0);
-            }
-        });
-    }
-
-    /**
-     * Get task datetime as Date object
-     * @param {Object} task - Task object
-     * @returns {Date|null}
-     */
-    getTaskDateTime(task) {
-        if (!task.date) return null;
+        // Schedule notification 30 minutes before
+        const notificationTime = new Date(taskDateTime. getTime() - 30 * 60 * 1000);
         
-        const timeStr = task.time || '23:59';
-        const dateTimeStr = `${task.date}T${timeStr}`;
+        if (notificationTime > now) {
+            const timeUntilNotification = notificationTime. getTime() - now.getTime();
+            
+            const timeoutId = setTimeout(() => {
+                this.showNotification(
+                    '⏰ Lembrete de Tarefa',
+                    `${task.title} está programada para daqui a 30 minutos!`,
+                    {
+                        tag: `task-reminder-${task.id}`,
+                        data: { taskId: task.id }
+                    }
+                );
+            }, timeUntilNotification);
+            
+            this.scheduledNotifications.set(task.id, {
+                timeoutId,
+                notificationTime: notificationTime. toISOString(),
+                taskTitle: task.title
+            });
+            
+            this.saveScheduledNotifications();
+        }
         
-        try {
-            const date = new Date(dateTimeStr);
-            return isNaN(date.getTime()) ? null : date;
-        } catch {
-            return null;
+        // Schedule notification at exact time
+        if (taskDateTime > now) {
+            const timeUntilTask = taskDateTime.getTime() - now.getTime();
+            
+            setTimeout(() => {
+                this.showNotification(
+                    '🔔 Hora da Tarefa! ',
+                    `${task. title}`,
+                    {
+                        tag: `task-due-${task.id}`,
+                        data: { taskId: task.id },
+                        requireInteraction: true
+                    }
+                );
+            }, timeUntilTask);
         }
     }
-
-    /**
-     * Send notification for upcoming task
-     * @param {Object} task - Task object
-     * @param {string} timeLeft - Human readable time left
-     */
-    notifyUpcoming(task, timeLeft) {
-        const priorityEmoji = {
-            high: '🔴',
-            medium: '🟡',
-            low: '🟢'
-        };
-
-        this.show(`⏰ Tarefa em ${timeLeft}`, {
-            body: `${priorityEmoji[task.priority] || ''} ${task.title}`,
-            tag: `upcoming_${task.id}`,
-            requireInteraction: true
+    
+    cancelNotification(taskId) {
+        const scheduled = this.scheduledNotifications. get(taskId);
+        if (scheduled) {
+            clearTimeout(scheduled.timeoutId);
+            this.scheduledNotifications. delete(taskId);
+            this.saveScheduledNotifications();
+        }
+    }
+    
+    getTaskDateTime(task) {
+        const dateTime = new Date(task.date);
+        
+        if (task.time) {
+            const [hours, minutes] = task.time.split(':');
+            dateTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        } else {
+            dateTime. setHours(9, 0, 0, 0); // Default to 9 AM
+        }
+        
+        return dateTime;
+    }
+    
+    startNotificationChecker() {
+        // Check every 5 minutes for tasks that need notifications
+        setInterval(() => {
+            this.checkPendingNotifications();
+        }, 5 * 60 * 1000);
+        
+        // Initial check
+        this.checkPendingNotifications();
+    }
+    
+    checkPendingNotifications() {
+        if (! this.checkPermission()) return;
+        
+        const tasks = this.getTasks();
+        const now = new Date();
+        
+        tasks. forEach(task => {
+            if (task.completed) return;
+            
+            const taskDateTime = this.getTaskDateTime(task);
+            const timeDiff = taskDateTime.getTime() - now.getTime();
+            
+            // Notify 1 hour before
+            if (timeDiff > 0 && timeDiff <= 60 * 60 * 1000) {
+                const minutesUntil = Math.round(timeDiff / 60 / 1000);
+                if (minutesUntil === 60 || minutesUntil === 30 || minutesUntil === 15 || minutesUntil === 5) {
+                    this. showNotification(
+                        '⏰ Lembrete',
+                        `${task.title} em ${minutesUntil} minutos`,
+                        {
+                            tag: `reminder-${task.id}-${minutesUntil}`,
+                            data: { taskId: task.id }
+                        }
+                    );
+                }
+            }
+            
+            // Notify if overdue
+            if (timeDiff < 0 && timeDiff > -60 * 60 * 1000) {
+                const minutesOverdue = Math.abs(Math.round(timeDiff / 60 / 1000));
+                if (minutesOverdue % 15 === 0) { // Every 15 minutes
+                    this.showNotification(
+                        '⚠️ Tarefa Atrasada',
+                        `${task.title} está ${minutesOverdue} minutos atrasada`,
+                        {
+                            tag: `overdue-${task.id}`,
+                            data: { taskId: task.id },
+                            requireInteraction: true
+                        }
+                    );
+                }
+            }
         });
     }
-
-    /**
-     * Send notification for task at deadline
-     * @param {Object} task - Task object
-     */
-    notifyDeadline(task) {
-        this.show('⚠️ Tarefa no prazo!', {
-            body: task.title,
-            tag: `deadline_${task.id}`,
-            requireInteraction: true
-        });
+    
+    getTasks() {
+        try {
+            const tasksJson = localStorage.getItem('tasks');
+            return tasksJson ? JSON.parse(tasksJson) : [];
+        } catch (error) {
+            console.error('Error loading tasks:', error);
+            return [];
+        }
     }
-
-    /**
-     * Send notification for overdue task
-     * @param {Object} task - Task object
-     */
-    notifyOverdue(task) {
-        this.show('❌ Tarefa atrasada!', {
-            body: task.title,
-            tag: `overdue_${task.id}`
-        });
+    
+    openTask(taskId) {
+        // Trigger opening task modal in main app
+        if (window.app) {
+            window.app. openTaskModal(taskId);
+        }
     }
-
-    /**
-     * Clear notification tracking for a task
-     * @param {string} taskId - Task ID
-     */
-    clearTaskNotifications(taskId) {
-        this.notifiedTasks.delete(`${taskId}_60`);
-        this.notifiedTasks.delete(`${taskId}_30`);
-        this.notifiedTasks.delete(`${taskId}_0`);
+    
+    saveScheduledNotifications() {
+        const data = Array.from(this.scheduledNotifications.entries()).map(([id, info]) => ({
+            id,
+            notificationTime: info.notificationTime,
+            taskTitle: info. taskTitle
+        }));
+        localStorage.setItem('scheduledNotifications', JSON.stringify(data));
     }
-
-    /**
-     * Show a general notification
-     * @param {string} message - Message to show
-     * @param {string} type - Type: success, error, warning, info
-     */
-    showGeneral(message, type = 'info') {
-        const icons = {
-            success: '✅',
-            error: '❌',
-            warning: '⚠️',
-            info: 'ℹ️'
-        };
-
-        this.show(`${icons[type] || ''} Task Scheduler`, {
-            body: message,
-            tag: 'general'
+    
+    loadScheduledNotifications() {
+        try {
+            const saved = localStorage.getItem('scheduledNotifications');
+            if (saved) {
+                const data = JSON.parse(saved);
+                // Clear old notifications and reschedule active ones
+                this.scheduledNotifications.clear();
+                // Reschedule would happen when tasks are loaded in main app
+            }
+        } catch (error) {
+            console. error('Error loading scheduled notifications:', error);
+        }
+    }
+    
+    showAlert(message, type = 'info') {
+        if (window.app) {
+            window.app.showToast(message, type);
+        } else {
+            console.log(`[${type. toUpperCase()}] ${message}`);
+        }
+    }
+    
+    // Daily summary notification
+    scheduleDailySummary() {
+        const now = new Date();
+        const tomorrow = new Date(now);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        tomorrow.setHours(8, 0, 0, 0); // 8 AM next day
+        
+        const timeUntilSummary = tomorrow.getTime() - now.getTime();
+        
+        setTimeout(() => {
+            this.sendDailySummary();
+            // Reschedule for next day
+            this.scheduleDailySummary();
+        }, timeUntilSummary);
+    }
+    
+    sendDailySummary() {
+        const tasks = this.getTasks();
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todayTasks = tasks.filter(task => {
+            const taskDate = new Date(task.date);
+            taskDate.setHours(0, 0, 0, 0);
+            return taskDate. getTime() === today.getTime();
         });
+        
+        const pendingToday = todayTasks.filter(t => ! t.completed). length;
+        
+        if (pendingToday > 0) {
+            this. showNotification(
+                '📋 Resumo do Dia',
+                `Você tem ${pendingToday} tarefa(s) pendente(s) para hoje!`,
+                { tag: 'daily-summary' }
+            );
+        }
     }
 }
 
-// Export as global for use in other scripts
-window.NotificationManager = NotificationManager;
+// Initialize and expose globally
+window.NotificationManager = new NotificationManager();
