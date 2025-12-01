@@ -198,12 +198,21 @@ class TaskSchedulerPro {
             return;
         }
 
-        resultsContainer.innerHTML = results.map(task => `
-            <div class="mobile-search-result" onclick="app.openTaskModal('${task.id}'); app.closeMobileSearch();">
+        // Clear container and add results with proper event listeners
+        resultsContainer.innerHTML = '';
+        results.forEach(task => {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = 'mobile-search-result';
+            resultDiv.innerHTML = `
                 <div class="mobile-search-result-title">${this.escapeHtml(task.title)}</div>
-                <div class="mobile-search-result-meta">${this.formatDate(task.date)}</div>
-            </div>
-        `).join('');
+                <div class="mobile-search-result-meta">${this.escapeHtml(this.formatDate(task.date))}</div>
+            `;
+            resultDiv.addEventListener('click', () => {
+                this.openTaskModal(task.id);
+                this.closeMobileSearch();
+            });
+            resultsContainer.appendChild(resultDiv);
+        });
     }
 
     // ==================== BOTTOM NAVIGATION ====================
@@ -390,8 +399,13 @@ class TaskSchedulerPro {
 
     // ==================== HAPTIC FEEDBACK ====================
     triggerHapticFeedback() {
-        if ('vibrate' in navigator) {
-            navigator.vibrate(10);
+        try {
+            if ('vibrate' in navigator) {
+                navigator.vibrate(10);
+            }
+        } catch (error) {
+            // Vibrate API may fail on some devices - fail silently
+            console.debug('Haptic feedback not available:', error);
         }
     }
 

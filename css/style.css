@@ -2027,7 +2027,8 @@ body {
     background: var(--bg-secondary);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    font-size: 16px; /* Prevents iOS zoom on focus */
+    /* 16px minimum prevents iOS Safari auto-zoom on input focus */
+    font-size: 16px;
     color: var(--text-primary);
 }
 
@@ -2587,7 +2588,8 @@ body {
     .form-input,
     .form-textarea,
     .form-select {
-        font-size: 16px; /* Prevents iOS zoom */
+        /* 16px minimum prevents iOS Safari auto-zoom on input focus */
+        font-size: 16px;
         padding: var(--space-4);
         min-height: 48px;
     }
@@ -2623,9 +2625,8 @@ body {
         font-size: var(--text-xs);
     }
 
-    /* Toast Mobile */
+    /* Toast Mobile - positioned at top with safe area support */
     .toast-container {
-        top: var(--space-4);
         top: calc(var(--space-4) + var(--safe-area-inset-top));
         bottom: auto;
         left: var(--space-4);
