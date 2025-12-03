@@ -26,20 +26,35 @@ class GoogleCalendarIntegration {
     }
 
     loadGoogleAPI() {
+        // Check if script is already loaded
+        if (typeof gapi !== 'undefined') {
+            gapi.load('client:auth2', () => {
+                this.initializeGAPI();
+            });
+            return;
+        }
+
         const script = document.createElement('script');
         script.src = 'https://apis.google.com/js/api.js';
         script.onload = () => {
-            script.onload = () => {
-                gapi.load('client:auth2', () => {
-                    this.initializeGAPI();
-                });
-            };
+            gapi.load('client:auth2', () => {
+                this.initializeGAPI();
+            });
+        };
+        script.onerror = () => {
+            console.warn('Failed to load Google API script');
         };
         document.head.appendChild(script);
     }
 
     async initializeGAPI() {
         try {
+            // Check if gapi is loaded
+            if (typeof gapi === 'undefined' || typeof gapi.client === 'undefined') {
+                console.warn('Google API not loaded yet');
+                return;
+            }
+
             // Try to load credentials from localStorage first
             const savedApiKey = localStorage.getItem('google_calendar_api_key');
             const savedClientId = localStorage.getItem('google_calendar_client_id');
@@ -47,10 +62,11 @@ class GoogleCalendarIntegration {
             const apiKey = this.apiKey || savedApiKey || 'YOUR_API_KEY';
             const clientId = this.clientId || savedClientId || 'YOUR_CLIENT_ID';
             
-            // Show warning if using default values
+            // Show warning if using default values, but don't block initialization
             if (apiKey === 'YOUR_API_KEY' || clientId === 'YOUR_CLIENT_ID') {
                 console.warn('⚠️ Configure suas credenciais do Google Calendar em js/google-calendar.js');
                 console.warn('📖 Veja GOOGLE_CALENDAR_SETUP.md para instruções');
+                // Don't return, just skip initialization
                 return;
             }
             
@@ -72,6 +88,7 @@ class GoogleCalendarIntegration {
             console.log('✓ Google Calendar API initialized');
         } catch (error) {
             console.error('Error initializing Google API:', error);
+            // Don't throw - allow app to continue without Google Calendar
         }
     }
 

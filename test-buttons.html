@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste de Botões</title>
+</head>
+<body>
+    <h1>Teste de Botões</h1>
+    <button onclick="testApp()">Testar App</button>
+    <button onclick="testWindow()">Testar Window</button>
+    <div id="result"></div>
+
+    <script>
+        function testApp() {
+            const result = document.getElementById('result');
+            if (window.app) {
+                result.innerHTML = '✓ window.app existe!<br>';
+                result.innerHTML += 'Tipo: ' + typeof window.app + '<br>';
+                result.innerHTML += 'Métodos disponíveis: ' + Object.keys(window.app).slice(0, 10).join(', ');
+            } else {
+                result.innerHTML = '✗ window.app NÃO existe!';
+            }
+        }
+
+        function testWindow() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Objetos globais:<br>';
+            result.innerHTML += 'window.app: ' + (window.app ? '✓' : '✗') + '<br>';
+            result.innerHTML += 'window.NotificationManager: ' + (window.NotificationManager ? '✓' : '✗') + '<br>';
+            result.innerHTML += 'window.GoogleCalendarIntegration: ' + (window.GoogleCalendarIntegration ? '✓' : '✗') + '<br>';
+        }
+
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                testApp();
+            }, 2000);
+        });
+    </script>
+</body>
+</html>
+

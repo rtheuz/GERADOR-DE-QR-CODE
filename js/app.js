@@ -979,7 +979,7 @@ class TaskSchedulerPro {
         this.editingTaskId = null;
     }
 
-    saveTask() {
+    async saveTask() {
         const title = document.getElementById('taskTitle').value.trim();
         const description = document.getElementById('taskDescription').value.trim();
         const date = document.getElementById('taskDate').value;
@@ -1515,28 +1515,49 @@ class TaskSchedulerPro {
 
     updateGoogleCalendarButton() {
         const btn = document.getElementById('connectGoogleCalendar');
-        if (btn && window.GoogleCalendarIntegration) {
-            const status = window.GoogleCalendarIntegration.getAuthStatus();
-            if (status.isAuthenticated) {
-                btn.innerHTML = '<span>✅</span><span>Desconectar Google Calendar</span>';
-                btn.onclick = () => this.disconnectGoogleCalendar();
-            } else {
+        if (!btn) return;
+        
+        if (window.GoogleCalendarIntegration && typeof window.GoogleCalendarIntegration.getAuthStatus === 'function') {
+            try {
+                const status = window.GoogleCalendarIntegration.getAuthStatus();
+                if (status && status.isAuthenticated) {
+                    btn.innerHTML = '<span>✅</span><span>Desconectar Google Calendar</span>';
+                    btn.onclick = () => this.disconnectGoogleCalendar();
+                } else {
+                    btn.innerHTML = '<span>🔗</span><span>Conectar Google Calendar</span>';
+                    btn.onclick = () => this.connectGoogleCalendar();
+                }
+            } catch (error) {
+                console.warn('Error checking Google Calendar status:', error);
                 btn.innerHTML = '<span>🔗</span><span>Conectar Google Calendar</span>';
                 btn.onclick = () => this.connectGoogleCalendar();
             }
+        } else {
+            btn.innerHTML = '<span>🔗</span><span>Conectar Google Calendar</span>';
+            btn.onclick = () => this.connectGoogleCalendar();
         }
+        
         this.updateGoogleCalendarSyncOption();
     }
 
     updateGoogleCalendarSyncOption() {
         const syncGroup = document.getElementById('googleCalendarSyncGroup');
-        if (syncGroup && window.GoogleCalendarIntegration) {
-            const status = window.GoogleCalendarIntegration.getAuthStatus();
-            if (status.isAuthenticated) {
-                syncGroup.style.display = 'block';
-            } else {
+        if (!syncGroup) return;
+        
+        if (window.GoogleCalendarIntegration && typeof window.GoogleCalendarIntegration.getAuthStatus === 'function') {
+            try {
+                const status = window.GoogleCalendarIntegration.getAuthStatus();
+                if (status && status.isAuthenticated) {
+                    syncGroup.style.display = 'block';
+                } else {
+                    syncGroup.style.display = 'none';
+                }
+            } catch (error) {
+                console.warn('Error checking Google Calendar status:', error);
                 syncGroup.style.display = 'none';
             }
+        } else {
+            syncGroup.style.display = 'none';
         }
     }
 
@@ -1684,5 +1705,14 @@ class TaskSchedulerPro {
 // ==================== INITIALIZE ====================
 let app;
 document.addEventListener('DOMContentLoaded', () => {
-    app = new TaskSchedulerPro();
+    try {
+        app = new TaskSchedulerPro();
+        // Expose globally for inline event handlers
+        window.app = app;
+        console.log('✓ App initialized successfully');
+    } catch (error) {
+        console.error('✗ Error initializing app:', error);
+        // Show error to user
+        alert('Erro ao inicializar o aplicativo. Por favor, recarregue a página.\n\nErro: ' + error.message);
+    }
 });
