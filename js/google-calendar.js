@@ -59,11 +59,11 @@ class GoogleCalendarIntegration {
             const savedApiKey = localStorage.getItem('google_calendar_api_key');
             const savedClientId = localStorage.getItem('google_calendar_client_id');
             
-            const apiKey = this.apiKey || savedApiKey || 'YOUR_API_KEY';
-            const clientId = this.clientId || savedClientId || 'YOUR_CLIENT_ID';
+            const apiKey = this.apiKey || savedApiKey || 'AIzaSyDeePME2wJ1A5D3jRCXVVmxprwDlmY1CoQ';
+            const clientId = this.clientId || savedClientId || '788764070114-dbd1iasevvmk66s3366qvc518p286f59.apps.googleusercontent.com';
             
             // Show warning if using default values, but don't block initialization
-            if (apiKey === 'YOUR_API_KEY' || clientId === 'YOUR_CLIENT_ID') {
+            if (apiKey === 'AIzaSyDeePME2wJ1A5D3jRCXVVmxprwDlmY1CoQ' || clientId === '788764070114-dbd1iasevvmk66s3366qvc518p286f59.apps.googleusercontent.com') {
                 console.warn('⚠️ Configure suas credenciais do Google Calendar em js/google-calendar.js');
                 console.warn('📖 Veja GOOGLE_CALENDAR_SETUP.md para instruções');
                 // Don't return, just skip initialization
@@ -353,10 +353,10 @@ class GoogleCalendarIntegration {
         localStorage.setItem('google_calendar_credentials', JSON.stringify(credentials));
         
         // Also save API key and Client ID if provided
-        if (this.apiKey && this.apiKey !== 'YOUR_API_KEY') {
+        if (this.apiKey && this.apiKey !== 'AIzaSyDeePME2wJ1A5D3jRCXVVmxprwDlmY1CoQ') {
             localStorage.setItem('google_calendar_api_key', this.apiKey);
         }
-        if (this.clientId && this.clientId !== 'YOUR_CLIENT_ID') {
+        if (this.clientId && this.clientId !== '788764070114-dbd1iasevvmk66s3366qvc518p286f59.apps.googleusercontent.com') {
             localStorage.setItem('google_calendar_client_id', this.clientId);
         }
     }
